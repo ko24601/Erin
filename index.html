@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>A Special Question for Erin ❤️</title>
+
+  <!-- SEO & Open Graph Meta Tags -->
+  <meta name="description" content="A cute, romantic, and memorable interactive question journey from Kyle for Erin.">
+  <meta name="theme-color" content="#fff5f7">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta property="og:title" content="A Special Question for Erin ❤️">
+  <meta property="og:description" content="Kyle has a very special question for you. Tap to open...">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts: Modern & Romantic Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Ambient Floating Heart Canvas -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- Celebration Confetti & Sparkle Canvas -->
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- Sound Toggle Button -->
+  <button id="sound-toggle" class="sound-btn" type="button" aria-label="Toggle Romantic Sound Effects"
+    title="Toggle sound effects">
+    <span id="sound-icon" aria-hidden="true">🔔</span>
+    <span class="sound-text">Sound</span>
+  </button>
+
+  <!-- Main Experience Wrapper -->
+  <main class="app-container" id="main-content">
+
+    <!-- Top Progress Indicator -->
+    <header class="progress-wrapper" id="progress-wrapper" aria-label="Question progress">
+      <div class="progress-pill" id="progress-pill">
+        <span class="progress-icon" aria-hidden="true">❤️</span>
+        <span class="progress-text" id="progress-text">Step 1 of 3</span>
+      </div>
+      <div class="progress-bar-container" aria-hidden="true">
+        <div class="progress-bar-fill" id="progress-bar-fill" style="width: 33.33%;"></div>
+      </div>
+    </header>
+
+    <!-- Interactive Card Wrapper -->
+    <div class="card-stage" id="card-stage">
+
+      <!-- ================= STEP 1: NAME ================= -->
+      <section class="step-card active" id="step-1" aria-labelledby="step1-title">
+        <div class="card-badge" aria-hidden="true">✨ For Someone Special</div>
+        <div class="card-heart-icon" aria-hidden="true">💌</div>
+
+        <h1 class="card-title" id="step1-title">What's your name? ❤️</h1>
+        <p class="card-subtitle">Let's make sure this special message is for the right person...</p>
+
+        <form id="name-form" class="card-form" onsubmit="return false;" novalidate>
+          <div class="input-wrapper">
+            <label for="name-input" class="sr-only">Enter your name</label>
+            <input type="text" id="name-input" class="text-input" placeholder="Type your name..." autocomplete="name"
+              autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="done" required>
+          </div>
+
+          <!-- Dynamic Feedback Message -->
+          <div id="step1-feedback" class="feedback-msg" aria-live="polite" role="status"></div>
+
+          <button type="submit" id="name-submit-btn" class="primary-btn pulse-glow">
+            <span>Answer ❤️</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- ================= STEP 2: FIRST PROMISE ================= -->
+      <section class="step-card" id="step-2" aria-labelledby="step2-title">
+        <div class="card-badge" aria-hidden="true">💍 A Little Promise</div>
+        <div class="card-heart-icon" aria-hidden="true">🤝❤️</div>
+
+        <h2 class="card-title" id="step2-title">
+          Will you always promise to stay with Kyle even when things get hard? ❤️
+        </h2>
+        <p class="card-subtitle">Through thick and thin, through every adventure...</p>
+
+        <!-- Dynamic Feedback Message -->
+        <div id="step2-feedback" class="feedback-msg" aria-live="polite" role="status"></div>
+
+        <div class="btn-group">
+          <button type="button" id="step2-yes-btn" class="primary-btn pulse-glow">
+            <span>Yes ❤️</span>
+          </button>
+          <button type="button" id="step2-no-btn" class="secondary-btn">
+            <span>No 💔</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 3: SECOND PROMISE ================= -->
+      <section class="step-card" id="step-3" aria-labelledby="step3-title">
+        <div class="card-badge" aria-hidden="true">🌟 Forever & Always</div>
+        <div class="card-heart-icon" aria-hidden="true">🌍💫</div>
+
+        <h2 class="card-title" id="step3-title">
+          Will you promise to be with him even if the world is against you two? ❤️
+        </h2>
+        <p class="card-subtitle">Just you and him, taking on the universe together...</p>
+
+        <!-- Dynamic Feedback Message -->
+        <div id="step3-feedback" class="feedback-msg" aria-live="polite" role="status"></div>
+
+        <div class="btn-group">
+          <button type="button" id="step3-yes-btn" class="primary-btn pulse-glow">
+            <span>Yes ❤️</span>
+          </button>
+          <button type="button" id="step3-no-btn" class="secondary-btn">
+            <span>No 💔</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 4: FINAL PROPOSAL ================= -->
+      <section class="step-card proposal-card" id="step-4" aria-labelledby="step4-title">
+        <div class="proposal-glow-ring" aria-hidden="true"></div>
+        <div class="card-badge highlight-badge" aria-hidden="true">💖 The Big Question</div>
+        <div class="proposal-icon-wrapper" aria-hidden="true">
+          <span class="big-heart-emoji">💖</span>
+          <span class="sparkle-emoji s1">✨</span>
+          <span class="sparkle-emoji s2">✨</span>
+        </div>
+
+        <h2 class="proposal-title" id="step4-title">
+          Erin, will you be my girlfriend? ❤️
+        </h2>
+        <p class="proposal-subtitle">Plus u can never get rid of me then hehe.</p>
+
+        <div class="btn-group proposal-btn-group">
+          <button type="button" id="proposal-yes-btn-1" class="primary-btn proposal-btn pulse-glow">
+            <span>YES ❤️</span>
+          </button>
+          <button type="button" id="proposal-yes-btn-2" class="primary-btn proposal-btn pulse-glow alt-shine">
+            <span>YES ❤️</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 5: SUCCESS / VICTORY SCREEN ================= -->
+      <section class="step-card success-card" id="step-success" aria-labelledby="success-title">
+        <div class="success-heart-animation" aria-hidden="true">
+          <div class="beating-heart">❤️</div>
+          <div class="pulse-ring r1"></div>
+          <div class="pulse-ring r2"></div>
+        </div>
+
+        <h2 class="success-title" id="success-title">
+          I knew you'd say yes ❤️
+        </h2>
+
+        <div class="couple-badge" aria-label="Kyle and Erin">
+          <span class="name-tag">Kyle</span>
+          <span class="couple-heart" aria-hidden="true">❤️</span>
+          <span class="name-tag">Erin</span>
+        </div>
+
+        <div class="love-message-card">
+          <p class="love-message-text">
+            "You are my favorite person, my best choice, and my happiest thought."
+          </p>
+          <div class="love-date" id="celebration-date">Officially Together 💕</div>
+        </div>
+
+        <div class="success-actions">
+          <button type="button" id="replay-btn" class="replay-btn">
+            <span>Replay the Journey 🔄</span>
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Footer Credits -->
+    <footer class="app-footer">
+      <p class="footer-text">Made with love by Kyle ❤️</p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
