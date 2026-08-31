@@ -50,30 +50,20 @@
     <!-- Interactive Card Wrapper -->
     <div class="card-stage" id="card-stage">
 
-      <!-- ================= STEP 0: WAX-SEALED ENVELOPE INTRO ================= -->
+      <!-- ================= STEP 0: ENVELOPE INTRO ================= -->
       <section class="step-card active envelope-card" id="step-0" aria-labelledby="envelope-title">
         <div class="card-badge" aria-hidden="true">💌 Special Delivery</div>
         <h1 class="card-title" id="envelope-title">You Have a Letter ❤️</h1>
         <p class="card-subtitle">From Kyle to his favorite person in the world...</p>
 
-        <div class="envelope-interactive-box" id="envelope-box" role="button" tabindex="0" aria-label="Tap to open the wax sealed envelope">
-          <div class="envelope-back"></div>
-          <div class="envelope-letter" id="envelope-letter">
-            <span class="letter-stamp">💌</span>
-            <span class="letter-text">To: Erin 💕</span>
-          </div>
-          <div class="envelope-flap" id="envelope-flap"></div>
-          <div class="envelope-front"></div>
-          <div class="wax-seal" id="wax-seal" title="Tap to break wax seal">
-            <div class="wax-inner">
-              <span class="wax-heart">❤️</span>
-            </div>
-            <div class="wax-ripple"></div>
-          </div>
+        <div class="envelope-preview-box" id="envelope-box" role="button" tabindex="0" aria-label="Tap to open the letter">
+          <div class="wax-seal-icon" aria-hidden="true">💌</div>
+          <div class="envelope-to-label">To: Erin 💕</div>
+          <div class="envelope-tap-hint">Tap to open Kyle's letter ✨</div>
         </div>
 
         <button type="button" id="open-envelope-btn" class="primary-btn pulse-glow open-letter-btn">
-          <span>Tap Wax Seal to Open 💌</span>
+          <span>Open Letter 💌</span>
         </button>
       </section>
 
@@ -165,7 +155,7 @@
 
         <div class="reasons-showcase" id="reasons-showcase">
           <div class="reason-active-card" id="current-reason-card">
-            <div class="reason-card-num" id="reason-num-badge">Reason #1</div>
+            <div class="reason-card-num" id="reason-num-badge">Reason #6 of 100</div>
             <div class="reason-card-emoji" id="reason-emoji">🐵❤️</div>
             <p class="reason-card-text" id="reason-text">"I love sharing inside jokes we have (Gay Lil Monkey)"</p>
           </div>

@@ -126,94 +126,33 @@
     currentStep: 0, // 0: Envelope, 1: Name, 2: Promise 1, 3: Promise 2, 4: Reasons, 5: Proposal, 6: Success
     soundEnabled: true,
     audioCtx: null,
-    currentReasonIndex: 0,
-    envelopeOpened: false
+    currentReasonIndex: 5
   };
 
-  // --- DOM ELEMENTS ---
-  const elements = {
-    progressWrapper: document.getElementById('progress-wrapper'),
-    progressText: document.getElementById('progress-text'),
-    progressBarFill: document.getElementById('progress-bar-fill'),
-    soundToggle: document.getElementById('sound-toggle'),
-    soundIcon: document.getElementById('sound-icon'),
-    
-    // Step Cards
-    step0: document.getElementById('step-0'),
-    step1: document.getElementById('step-1'),
-    step2: document.getElementById('step-2'),
-    step3: document.getElementById('step-3'),
-    stepReasons: document.getElementById('step-reasons'),
-    step4: document.getElementById('step-4'),
-    stepSuccess: document.getElementById('step-success'),
-
-    // Envelope Elements
-    envelopeBox: document.getElementById('envelope-box'),
-    waxSeal: document.getElementById('wax-seal'),
-    openEnvelopeBtn: document.getElementById('open-envelope-btn'),
-    
-    // Step 1 Controls
-    nameForm: document.getElementById('name-form'),
-    nameInput: document.getElementById('name-input'),
-    nameFeedback: document.getElementById('step1-feedback'),
-    nameSubmitBtn: document.getElementById('name-submit-btn'),
-
-    // Step 2 Controls
-    step2Feedback: document.getElementById('step2-feedback'),
-    step2YesBtn: document.getElementById('step2-yes-btn'),
-    step2NoBtn: document.getElementById('step2-no-btn'),
-
-    // Step 3 Controls
-    step3Feedback: document.getElementById('step3-feedback'),
-    step3YesBtn: document.getElementById('step3-yes-btn'),
-    step3NoBtn: document.getElementById('step3-no-btn'),
-
-    // Reasons Showcase
-    currentReasonCard: document.getElementById('current-reason-card'),
-    reasonNumBadge: document.getElementById('reason-num-badge'),
-    reasonEmoji: document.getElementById('reason-emoji'),
-    reasonText: document.getElementById('reason-text'),
-    nextReasonBtn: document.getElementById('next-reason-btn'),
-    openVaultBtn: document.getElementById('open-vault-btn'),
-    reasonsContinueBtn: document.getElementById('reasons-continue-btn'),
-
-    // 100 Reasons Modal
-    vaultModal: document.getElementById('vault-modal'),
-    vaultListContainer: document.getElementById('vault-list-container'),
-    closeVaultBtn: document.getElementById('close-vault-btn'),
-    modalDoneBtn: document.getElementById('modal-done-btn'),
-    openVaultFromSuccessBtn: document.getElementById('open-vault-from-success-btn'),
-
-    // Proposal Controls
-    proposalYes1: document.getElementById('proposal-yes-btn-1'),
-    proposalYes2: document.getElementById('proposal-yes-btn-2'),
-
-    // Celebration
-    celebrationDate: document.getElementById('celebration-date'),
-    downloadCertBtn: document.getElementById('download-cert-btn'),
-    replayBtn: document.getElementById('replay-btn'),
-    certCanvas: document.getElementById('cert-canvas'),
-
-    // Canvases
-    bgCanvas: document.getElementById('bg-canvas'),
-    confettiCanvas: document.getElementById('confetti-canvas')
-  };
+  // --- DOM ELEMENTS HELPER ---
+  function $(id) {
+    return document.getElementById(id);
+  }
 
   // ==========================================================================
   // 1. SOUND SYNTHESIZER (Web Audio API)
   // ==========================================================================
 
   function getAudioContext() {
-    if (!state.audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        state.audioCtx = new AudioContext();
+    try {
+      if (!state.audioCtx) {
+        const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtxClass) {
+          state.audioCtx = new AudioCtxClass();
+        }
       }
+      if (state.audioCtx && state.audioCtx.state === 'suspended') {
+        state.audioCtx.resume();
+      }
+      return state.audioCtx;
+    } catch (e) {
+      return null;
     }
-    if (state.audioCtx && state.audioCtx.state === 'suspended') {
-      state.audioCtx.resume();
-    }
-    return state.audioCtx;
   }
 
   function playTone(freq, type = 'sine', duration = 0.2, gainValue = 0.15, delay = 0) {
@@ -223,49 +162,48 @@
       if (!ctx) return;
 
       setTimeout(() => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        
-        gain.gain.setValueAtTime(0.001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(gainValue, ctx.currentTime + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+        try {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          
+          gain.gain.setValueAtTime(0.001, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(gainValue, ctx.currentTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
 
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + duration);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + duration);
+        } catch (err) {}
       }, delay * 1000);
-    } catch (e) {
-      // Audio not supported or blocked
-    }
+    } catch (e) {}
   }
 
   function playSound(type) {
     if (!state.soundEnabled) return;
 
     if (type === 'click') {
-      playTone(523.25, 'sine', 0.12, 0.1); // C5
+      playTone(523.25, 'sine', 0.12, 0.1);
     } else if (type === 'dodge') {
       playTone(659.25, 'triangle', 0.1, 0.12);
       playTone(880, 'triangle', 0.12, 0.12, 0.06);
     } else if (type === 'wrong') {
-      playTone(330, 'triangle', 0.15, 0.15); // E4
-      playTone(277.18, 'triangle', 0.25, 0.15, 0.12); // C#4
+      playTone(330, 'triangle', 0.15, 0.15);
+      playTone(277.18, 'triangle', 0.25, 0.15, 0.12);
     } else if (type === 'unseal') {
-      // Magical sparkle chime
-      playTone(587.33, 'sine', 0.3, 0.12, 0.0);   // D5
-      playTone(739.99, 'sine', 0.3, 0.12, 0.08);  // F#5
-      playTone(880.00, 'sine', 0.35, 0.14, 0.16); // A5
-      playTone(1174.66, 'sine', 0.5, 0.16, 0.24); // D6
+      playTone(587.33, 'sine', 0.3, 0.12, 0.0);
+      playTone(739.99, 'sine', 0.3, 0.12, 0.08);
+      playTone(880.00, 'sine', 0.35, 0.14, 0.16);
+      playTone(1174.66, 'sine', 0.5, 0.16, 0.24);
     } else if (type === 'success') {
-      playTone(523.25, 'sine', 0.25, 0.12, 0.0);   // C5
-      playTone(659.25, 'sine', 0.25, 0.12, 0.08);  // E5
-      playTone(783.99, 'sine', 0.35, 0.14, 0.16);  // G5
-      playTone(1046.50, 'sine', 0.5, 0.16, 0.24);  // C6
+      playTone(523.25, 'sine', 0.25, 0.12, 0.0);
+      playTone(659.25, 'sine', 0.25, 0.12, 0.08);
+      playTone(783.99, 'sine', 0.35, 0.14, 0.16);
+      playTone(1046.50, 'sine', 0.5, 0.16, 0.24);
     } else if (type === 'celebration') {
       const notes = [
         { f: 523.25, d: 0.0 },
@@ -285,16 +223,19 @@
   // ==========================================================================
 
   const bgHearts = [];
-  const bgCtx = elements.bgCanvas.getContext('2d');
+  let bgCanvas, bgCtx;
   let bgWidth = 0;
   let bgHeight = 0;
 
   function resizeBgCanvas() {
+    bgCanvas = $('bg-canvas');
+    if (!bgCanvas) return;
+    bgCtx = bgCanvas.getContext('2d');
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     bgWidth = window.innerWidth;
     bgHeight = window.innerHeight;
-    elements.bgCanvas.width = bgWidth * dpr;
-    elements.bgCanvas.height = bgHeight * dpr;
+    bgCanvas.width = bgWidth * dpr;
+    bgCanvas.height = bgHeight * dpr;
     bgCtx.scale(dpr, dpr);
   }
 
@@ -335,6 +276,7 @@
   }
 
   function animateBgHearts() {
+    if (!bgCtx) return;
     bgCtx.clearRect(0, 0, bgWidth, bgHeight);
 
     for (let i = 0; i < bgHearts.length; i++) {
@@ -359,17 +301,20 @@
   // ==========================================================================
 
   const confettiParticles = [];
-  const confettiCtx = elements.confettiCanvas.getContext('2d');
+  let confettiCanvas, confettiCtx;
   let confettiWidth = 0;
   let confettiHeight = 0;
   let isCelebrating = false;
 
   function resizeConfettiCanvas() {
+    confettiCanvas = $('confetti-canvas');
+    if (!confettiCanvas) return;
+    confettiCtx = confettiCanvas.getContext('2d');
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     confettiWidth = window.innerWidth;
     confettiHeight = window.innerHeight;
-    elements.confettiCanvas.width = confettiWidth * dpr;
-    elements.confettiCanvas.height = confettiHeight * dpr;
+    confettiCanvas.width = confettiWidth * dpr;
+    confettiCanvas.height = confettiHeight * dpr;
     confettiCtx.scale(dpr, dpr);
   }
 
@@ -378,7 +323,6 @@
     const colors = ['#ff2a5f', '#ff4d6d', '#ff758c', '#ffd166', '#ffb3c1', '#7209b7', '#ffeedd'];
     const heartColors = ['#ff3366', '#e11d48', '#ff4d79', '#ff758c'];
 
-    // Burst 1: Central Explosion
     for (let i = 0; i < 150; i++) {
       const angle = Math.random() * Math.PI * 2;
       const velocity = 4 + Math.random() * 12;
@@ -395,12 +339,10 @@
         rotationSpeed: (Math.random() - 0.5) * 10,
         gravity: 0.22,
         drag: 0.96,
-        alpha: 1,
-        life: 1
+        alpha: 1
       });
     }
 
-    // Burst 2: Side Showers
     const intervals = [300, 700, 1200, 1800, 2600];
     intervals.forEach(delay => {
       setTimeout(() => {
@@ -419,8 +361,7 @@
             rotationSpeed: (Math.random() - 0.5) * 8,
             gravity: 0.16,
             drag: 0.98,
-            alpha: 1,
-            life: 1
+            alpha: 1
           });
         }
       }, delay);
@@ -430,6 +371,7 @@
   }
 
   function animateConfetti() {
+    if (!confettiCtx) return;
     confettiCtx.clearRect(0, 0, confettiWidth, confettiHeight);
 
     for (let i = confettiParticles.length - 1; i >= 0; i--) {
@@ -477,25 +419,30 @@
 
   function getStepElement(stepNum) {
     switch (stepNum) {
-      case 0: return elements.step0;
-      case 1: return elements.step1;
-      case 2: return elements.step2;
-      case 3: return elements.step3;
-      case 4: return elements.stepReasons;
-      case 5: return elements.step4;
-      case 6: return elements.stepSuccess;
+      case 0: return $('step-0');
+      case 1: return $('step-1');
+      case 2: return $('step-2');
+      case 3: return $('step-3');
+      case 4: return $('step-reasons');
+      case 5: return $('step-4');
+      case 6: return $('step-success');
       default: return null;
     }
   }
 
   function updateProgress(stepNum) {
+    const wrapper = $('progress-wrapper');
+    const text = $('progress-text');
+    const fill = $('progress-bar-fill');
+    if (!wrapper || !text || !fill) return;
+
     if (stepNum >= 1 && stepNum <= 4) {
-      elements.progressWrapper.classList.remove('hidden');
-      elements.progressText.textContent = `Step ${stepNum} of 4`;
+      wrapper.classList.remove('hidden');
+      text.textContent = `Step ${stepNum} of 4`;
       const percentages = [0, 25, 50, 75, 100];
-      elements.progressBarFill.style.width = `${percentages[stepNum]}%`;
+      fill.style.width = `${percentages[stepNum]}%`;
     } else {
-      elements.progressWrapper.classList.add('hidden');
+      wrapper.classList.add('hidden');
     }
   }
 
@@ -515,20 +462,26 @@
 
       // Focus management
       if (nextStep === 1) {
-        setTimeout(() => elements.nameInput.focus(), 300);
+        const input = $('name-input');
+        if (input) setTimeout(() => input.focus(), 250);
       } else if (nextStep === 2) {
-        elements.step2YesBtn.focus();
+        const yesBtn = $('step2-yes-btn');
+        if (yesBtn) yesBtn.focus();
       } else if (nextStep === 3) {
-        elements.step3YesBtn.focus();
+        const yesBtn = $('step3-yes-btn');
+        if (yesBtn) yesBtn.focus();
       } else if (nextStep === 4) {
-        elements.reasonsContinueBtn.focus();
+        const contBtn = $('reasons-continue-btn');
+        if (contBtn) contBtn.focus();
       } else if (nextStep === 5) {
-        elements.proposalYes1.focus();
+        const propYes = $('proposal-yes-btn-1');
+        if (propYes) propYes.focus();
       }
-    }, 280);
+    }, 200);
   }
 
   function triggerShake(cardElement) {
+    if (!cardElement) return;
     cardElement.classList.remove('shake-active');
     void cardElement.offsetWidth;
     cardElement.classList.add('shake-active');
@@ -542,21 +495,22 @@
   function handleRunawayNo(buttonElement, feedbackElement) {
     playSound('dodge');
     
-    // Pick random message
     const msg = runawayMessages[Math.floor(Math.random() * runawayMessages.length)];
-    feedbackElement.textContent = msg;
-    feedbackElement.className = 'feedback-msg error';
+    if (feedbackElement) {
+      feedbackElement.textContent = msg;
+      feedbackElement.className = 'feedback-msg error';
+    }
 
-    // Calculate random dodge offset within safe bounds
     const maxOffset = 60;
     const randomX = (Math.random() - 0.5) * maxOffset * 2;
     const randomY = (Math.random() - 0.5) * maxOffset;
 
-    buttonElement.style.transform = `translate(${randomX}px, ${randomY}px) scale(0.95)`;
-    
-    setTimeout(() => {
-      buttonElement.style.transform = 'translate(0, 0) scale(1)';
-    }, 900);
+    if (buttonElement) {
+      buttonElement.style.transform = `translate(${randomX}px, ${randomY}px) scale(0.95)`;
+      setTimeout(() => {
+        buttonElement.style.transform = 'translate(0, 0) scale(1)';
+      }, 900);
+    }
   }
 
   // ==========================================================================
@@ -564,23 +518,31 @@
   // ==========================================================================
 
   function updateReasonCard(index) {
+    const card = $('current-reason-card');
+    const badge = $('reason-num-badge');
+    const emojiEl = $('reason-emoji');
+    const textEl = $('reason-text');
+    if (!card || !badge || !emojiEl || !textEl) return;
+
     const reasonText = kyleReasons[index];
     const emoji = reasonEmojis[index % reasonEmojis.length];
 
-    elements.currentReasonCard.style.opacity = '0';
-    elements.currentReasonCard.style.transform = 'scale(0.95)';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.95)';
 
     setTimeout(() => {
-      elements.reasonNumBadge.textContent = `Reason #${index + 1} of ${kyleReasons.length}`;
-      elements.reasonEmoji.textContent = emoji;
-      elements.reasonText.textContent = `"${reasonText}"`;
-      elements.currentReasonCard.style.opacity = '1';
-      elements.currentReasonCard.style.transform = 'scale(1)';
-    }, 200);
+      badge.textContent = `Reason #${index + 1} of ${kyleReasons.length}`;
+      emojiEl.textContent = emoji;
+      textEl.textContent = `"${reasonText}"`;
+      card.style.opacity = '1';
+      card.style.transform = 'scale(1)';
+    }, 150);
   }
 
   function renderVaultList() {
-    elements.vaultListContainer.innerHTML = '';
+    const container = $('vault-list-container');
+    if (!container) return;
+    container.innerHTML = '';
     kyleReasons.forEach((reason, i) => {
       const item = document.createElement('div');
       item.className = 'vault-item';
@@ -588,18 +550,20 @@
         <span class="vault-item-num">${i + 1}</span>
         <span class="vault-item-text">${reason}</span>
       `;
-      elements.vaultListContainer.appendChild(item);
+      container.appendChild(item);
     });
   }
 
   function openVault() {
     playSound('click');
-    elements.vaultModal.classList.remove('hidden');
+    const modal = $('vault-modal');
+    if (modal) modal.classList.remove('hidden');
   }
 
   function closeVault() {
     playSound('click');
-    elements.vaultModal.classList.add('hidden');
+    const modal = $('vault-modal');
+    if (modal) modal.classList.add('hidden');
   }
 
   // ==========================================================================
@@ -608,14 +572,13 @@
 
   function generateAndDownloadCertificate() {
     playSound('celebration');
-    const canvas = elements.certCanvas;
+    const canvas = $('cert-canvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    // High-resolution certificate canvas
     canvas.width = 1200;
     canvas.height = 800;
 
-    // Background Parchment Gradient
     const bgGrad = ctx.createLinearGradient(0, 0, 1200, 800);
     bgGrad.addColorStop(0, '#fffbfb');
     bgGrad.addColorStop(0.5, '#fff0f3');
@@ -623,7 +586,6 @@
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 1200, 800);
 
-    // Decorative Borders
     ctx.strokeStyle = '#ff3366';
     ctx.lineWidth = 14;
     ctx.strokeRect(30, 30, 1140, 740);
@@ -634,23 +596,19 @@
     ctx.strokeRect(48, 48, 1104, 704);
     ctx.setLineDash([]);
 
-    // Header Title
     ctx.textAlign = 'center';
     ctx.fillStyle = '#b91c1c';
     ctx.font = 'bold 32px Georgia, serif';
     ctx.fillText('✨ OFFICIAL CERTIFICATE OF LOVE & HAPPINESS ✨', 600, 120);
 
-    // Main Announcement
     ctx.fillStyle = '#ff2a5f';
     ctx.font = 'bold 54px Georgia, serif';
     ctx.fillText('Officially Kyle\'s Girlfriend ❤️', 600, 200);
 
-    // Body Text
     ctx.fillStyle = '#2d0e17';
     ctx.font = '28px sans-serif';
     ctx.fillText('This document certifies and confirms that', 600, 280);
 
-    // Erin's Name
     ctx.fillStyle = '#e11d48';
     ctx.font = 'bold 58px Georgia, serif';
     ctx.fillText('Erin 💕 (Lil Monkey)', 600, 360);
@@ -659,13 +617,11 @@
     ctx.font = '26px sans-serif';
     ctx.fillText('has said YES to being with Kyle forever through all adventures, laughs & love.', 600, 430);
 
-    // Date
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     ctx.fillStyle = '#6b4350';
     ctx.font = 'italic 24px Georgia, serif';
     ctx.fillText(`Issued with endless love on: ${today}`, 600, 500);
 
-    // Seals & Signatures
     ctx.fillStyle = '#ff2a5f';
     ctx.font = 'bold 34px sans-serif';
     ctx.fillText('Signed: Kyle ❤️', 380, 640);
@@ -675,7 +631,6 @@
     ctx.font = '18px sans-serif';
     ctx.fillText('Non-refundable • Valid Forever • 100% Mine', 600, 710);
 
-    // Trigger Download
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.download = 'Erin-and-Kyle-Official-Girlfriend-Certificate.png';
@@ -684,151 +639,193 @@
   }
 
   // ==========================================================================
-  // 8. EVENT HANDLERS & STEP VALIDATIONS
+  // 8. EVENT ATTACHMENT
   // ==========================================================================
 
-  // --- Step 0: Envelope Opening ---
-  function openEnvelope() {
-    if (state.envelopeOpened) return;
-    state.envelopeOpened = true;
-    playSound('unseal');
-    elements.step0.classList.add('envelope-opening');
-
-    setTimeout(() => {
+  function bindEvents() {
+    // Step 0: Envelope
+    const openEnvelope = () => {
+      playSound('unseal');
       goToStep(1, 'forward');
-    }, 1100);
-  }
+    };
 
-  elements.waxSeal.addEventListener('click', openEnvelope);
-  elements.envelopeBox.addEventListener('click', openEnvelope);
-  elements.openEnvelopeBtn.addEventListener('click', openEnvelope);
+    const envBox = $('envelope-box');
+    const envBtn = $('open-envelope-btn');
+    if (envBox) envBox.addEventListener('click', openEnvelope);
+    if (envBtn) envBtn.addEventListener('click', openEnvelope);
 
-  // --- Step 1: Name Check ---
-  function handleNameSubmit() {
-    const rawVal = elements.nameInput.value;
-    const cleanVal = rawVal.trim().toLowerCase();
+    // Step 1: Name Form
+    const nameForm = $('name-form');
+    const nameInput = $('name-input');
+    const nameFeedback = $('step1-feedback');
+    const step1Card = $('step-1');
 
-    if (cleanVal === 'erin') {
-      playSound('success');
-      elements.nameFeedback.textContent = "That's right ❤️";
-      elements.nameFeedback.className = 'feedback-msg success';
-      elements.nameInput.blur();
+    if (nameForm && nameInput) {
+      nameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const rawVal = nameInput.value || '';
+        const cleanVal = rawVal.trim().toLowerCase();
+
+        if (cleanVal === 'erin') {
+          playSound('success');
+          if (nameFeedback) {
+            nameFeedback.textContent = "That's right ❤️";
+            nameFeedback.className = 'feedback-msg success';
+          }
+          nameInput.blur();
+          setTimeout(() => goToStep(2, 'forward'), 600);
+        } else {
+          playSound('wrong');
+          if (nameFeedback) {
+            nameFeedback.textContent = "Nuh uh, wrong answer 😤❤️";
+            nameFeedback.className = 'feedback-msg error';
+          }
+          triggerShake(step1Card);
+          nameInput.focus();
+          nameInput.select();
+        }
+      });
+    }
+
+    // Step 2: First Promise
+    const step2Yes = $('step2-yes-btn');
+    const step2No = $('step2-no-btn');
+    const step2Feedback = $('step2-feedback');
+
+    if (step2Yes) {
+      step2Yes.addEventListener('click', () => {
+        playSound('success');
+        if (step2Feedback) {
+          step2Feedback.textContent = "Always & forever ❤️";
+          step2Feedback.className = 'feedback-msg success';
+        }
+        setTimeout(() => {
+          if (step2Feedback) step2Feedback.textContent = '';
+          goToStep(3, 'forward');
+        }, 550);
+      });
+    }
+
+    if (step2No) {
+      step2No.addEventListener('click', () => {
+        handleRunawayNo(step2No, step2Feedback);
+      });
+    }
+
+    // Step 3: Second Promise
+    const step3Yes = $('step3-yes-btn');
+    const step3No = $('step3-no-btn');
+    const step3Feedback = $('step3-feedback');
+
+    if (step3Yes) {
+      step3Yes.addEventListener('click', () => {
+        playSound('success');
+        if (step3Feedback) {
+          step3Feedback.textContent = "You & me against the world 💫❤️";
+          step3Feedback.className = 'feedback-msg success';
+        }
+        setTimeout(() => {
+          if (step3Feedback) step3Feedback.textContent = '';
+          goToStep(4, 'forward');
+        }, 550);
+      });
+    }
+
+    if (step3No) {
+      step3No.addEventListener('click', () => {
+        handleRunawayNo(step3No, step3Feedback);
+      });
+    }
+
+    // Step 4: Reasons Showcase
+    const nextReason = $('next-reason-btn');
+    const openVaultBtn1 = $('open-vault-btn');
+    const openVaultBtn2 = $('open-vault-from-success-btn');
+    const closeVaultBtn = $('close-vault-btn');
+    const modalDoneBtn = $('modal-done-btn');
+    const reasonsContinue = $('reasons-continue-btn');
+    const vaultModal = $('vault-modal');
+
+    if (nextReason) {
+      nextReason.addEventListener('click', () => {
+        playSound('click');
+        state.currentReasonIndex = (state.currentReasonIndex + 1) % kyleReasons.length;
+        updateReasonCard(state.currentReasonIndex);
+      });
+    }
+
+    if (openVaultBtn1) openVaultBtn1.addEventListener('click', openVault);
+    if (openVaultBtn2) openVaultBtn2.addEventListener('click', openVault);
+    if (closeVaultBtn) closeVaultBtn.addEventListener('click', closeVault);
+    if (modalDoneBtn) modalDoneBtn.addEventListener('click', closeVault);
+    if (vaultModal) {
+      vaultModal.addEventListener('click', (e) => {
+        if (e.target === vaultModal) closeVault();
+      });
+    }
+
+    if (reasonsContinue) {
+      reasonsContinue.addEventListener('click', () => {
+        playSound('success');
+        goToStep(5, 'forward');
+      });
+    }
+
+    // Step 5: Proposal Yes Buttons
+    const propYes1 = $('proposal-yes-btn-1');
+    const propYes2 = $('proposal-yes-btn-2');
+    const celebrationDate = $('celebration-date');
+
+    const handleProposalAccept = () => {
+      playSound('celebration');
+      launchCelebration();
+      
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const today = new Date().toLocaleDateString('en-US', options);
+      if (celebrationDate) {
+        celebrationDate.textContent = `Officially Together • ${today} 💕`;
+      }
 
       setTimeout(() => {
-        goToStep(2, 'forward');
-      }, 700);
-    } else {
-      playSound('wrong');
-      elements.nameFeedback.textContent = "Nuh uh, wrong answer 😤❤️";
-      elements.nameFeedback.className = 'feedback-msg error';
-      triggerShake(elements.step1);
-      elements.nameInput.focus();
-      elements.nameInput.select();
+        goToStep(6, 'forward');
+      }, 600);
+    };
+
+    if (propYes1) propYes1.addEventListener('click', handleProposalAccept);
+    if (propYes2) propYes2.addEventListener('click', handleProposalAccept);
+
+    // Step 6: Certificate Download & Replay
+    const certBtn = $('download-cert-btn');
+    const replayBtn = $('replay-btn');
+
+    if (certBtn) certBtn.addEventListener('click', generateAndDownloadCertificate);
+    if (replayBtn) {
+      replayBtn.addEventListener('click', () => {
+        playSound('click');
+        if (nameInput) nameInput.value = '';
+        if (nameFeedback) nameFeedback.textContent = '';
+        if (step2Feedback) step2Feedback.textContent = '';
+        if (step3Feedback) step3Feedback.textContent = '';
+        goToStep(0, 'backward');
+      });
+    }
+
+    // Sound Toggle
+    const soundToggle = $('sound-toggle');
+    const soundIcon = $('sound-icon');
+    if (soundToggle) {
+      soundToggle.addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔔' : '🔕';
+        const soundText = soundToggle.querySelector('.sound-text');
+        if (soundText) soundText.textContent = state.soundEnabled ? 'Sound' : 'Muted';
+        if (state.soundEnabled) playSound('click');
+      });
     }
   }
-
-  elements.nameForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    handleNameSubmit();
-  });
-
-  // --- Step 2: First Promise ---
-  elements.step2YesBtn.addEventListener('click', () => {
-    playSound('success');
-    elements.step2Feedback.textContent = "Always & forever ❤️";
-    elements.step2Feedback.className = 'feedback-msg success';
-    setTimeout(() => {
-      elements.step2Feedback.textContent = '';
-      goToStep(3, 'forward');
-    }, 600);
-  });
-
-  elements.step2NoBtn.addEventListener('click', () => {
-    handleRunawayNo(elements.step2NoBtn, elements.step2Feedback);
-  });
-
-  // --- Step 3: Second Promise ---
-  elements.step3YesBtn.addEventListener('click', () => {
-    playSound('success');
-    elements.step3Feedback.textContent = "You & me against the world 💫❤️";
-    elements.step3Feedback.className = 'feedback-msg success';
-    setTimeout(() => {
-      elements.step3Feedback.textContent = '';
-      goToStep(4, 'forward'); // Go to Reasons Showcase
-    }, 700);
-  });
-
-  elements.step3NoBtn.addEventListener('click', () => {
-    handleRunawayNo(elements.step3NoBtn, elements.step3Feedback);
-  });
-
-  // --- Step 4: Reasons Showcase ---
-  elements.nextReasonBtn.addEventListener('click', () => {
-    playSound('click');
-    state.currentReasonIndex = (state.currentReasonIndex + 1) % kyleReasons.length;
-    updateReasonCard(state.currentReasonIndex);
-  });
-
-  elements.openVaultBtn.addEventListener('click', openVault);
-  elements.openVaultFromSuccessBtn.addEventListener('click', openVault);
-  elements.closeVaultBtn.addEventListener('click', closeVault);
-  elements.modalDoneBtn.addEventListener('click', closeVault);
-
-  elements.reasonsContinueBtn.addEventListener('click', () => {
-    playSound('success');
-    goToStep(5, 'forward'); // Go to Proposal Climax
-  });
-
-  // --- Step 5: Proposal Acceptance ---
-  function handleProposalAccept() {
-    playSound('celebration');
-    launchCelebration();
-    
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    const today = new Date().toLocaleDateString('en-US', options);
-    elements.celebrationDate.textContent = `Officially Together • ${today} 💕`;
-
-    setTimeout(() => {
-      goToStep(6, 'forward');
-    }, 650);
-  }
-
-  elements.proposalYes1.addEventListener('click', handleProposalAccept);
-  elements.proposalYes2.addEventListener('click', handleProposalAccept);
-
-  // --- Step 6: Certificate Download & Replay ---
-  elements.downloadCertBtn.addEventListener('click', generateAndDownloadCertificate);
-
-  elements.replayBtn.addEventListener('click', () => {
-    playSound('click');
-    state.envelopeOpened = false;
-    elements.step0.classList.remove('envelope-opening');
-    elements.nameInput.value = '';
-    elements.nameFeedback.textContent = '';
-    elements.step2Feedback.textContent = '';
-    elements.step3Feedback.textContent = '';
-    goToStep(0, 'backward');
-  });
-
-  // --- Sound Toggle ---
-  elements.soundToggle.addEventListener('click', () => {
-    state.soundEnabled = !state.soundEnabled;
-    elements.soundIcon.textContent = state.soundEnabled ? '🔔' : '🔕';
-    elements.soundToggle.querySelector('.sound-text').textContent = state.soundEnabled ? 'Sound' : 'Muted';
-    if (state.soundEnabled) {
-      playSound('click');
-    }
-  });
-
-  // Close modal when clicking backdrop
-  elements.vaultModal.addEventListener('click', (e) => {
-    if (e.target === elements.vaultModal) {
-      closeVault();
-    }
-  });
 
   // ==========================================================================
-  // 9. INITIALIZATION & RESIZE
+  // 9. INITIALIZATION
   // ==========================================================================
 
   function init() {
@@ -837,7 +834,8 @@
     initBgHearts();
     animateBgHearts();
     renderVaultList();
-    updateReasonCard(5); // Start with inside joke reason #6 (Gay Lil Monkey)
+    updateReasonCard(5);
+    bindEvents();
 
     window.addEventListener('resize', () => {
       resizeBgCanvas();
