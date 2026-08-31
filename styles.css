@@ -74,7 +74,7 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
 #bg-canvas {
@@ -91,7 +91,7 @@ html, body {
   top: max(16px, env(safe-area-inset-top));
   right: max(16px, env(safe-area-inset-right));
   z-index: 50;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
@@ -104,8 +104,9 @@ html, body {
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 51, 102, 0.1);
+  box-shadow: 0 4px 12px rgba(255, 51, 102, 0.12);
   transition: transform 0.2s var(--ease-spring), background-color 0.2s;
+  pointer-events: auto;
 }
 
 .sound-btn:hover, .sound-btn:focus-visible {
@@ -143,21 +144,11 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-.progress-wrapper.hidden {
-  opacity: 0;
-  transform: translateY(-10px);
-  pointer-events: none;
-  visibility: hidden;
-  height: 0;
-  margin-bottom: 0;
-  display: none !important;
+  transition: opacity 0.3s ease;
 }
 
 .progress-pill {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   border: 1px solid var(--card-border);
   padding: 5px 14px;
@@ -188,7 +179,7 @@ html, body {
   height: 100%;
   background: var(--primary-gradient);
   border-radius: var(--radius-pill);
-  transition: width 0.5s var(--ease-spring);
+  transition: width 0.4s var(--ease-spring);
 }
 
 /* Card Stage & Cards */
@@ -198,7 +189,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 440px;
+  min-height: 420px;
 }
 
 .step-card {
@@ -208,36 +199,23 @@ html, body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
-  padding: 32px 24px;
+  padding: 32px 22px;
   box-shadow: var(--card-shadow);
   text-align: center;
   display: none;
   flex-direction: column;
   align-items: center;
   opacity: 0;
-  transform: translateY(16px) scale(0.97);
+  transform: translateY(12px) scale(0.98);
+  transition: opacity 0.3s ease, transform 0.3s var(--ease-spring);
   pointer-events: none;
-  transition: opacity 0.4s var(--ease-smooth), transform 0.4s var(--ease-spring);
-  will-change: transform, opacity;
 }
 
 .step-card.active {
-  display: flex;
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.step-card.exit-left {
-  opacity: 0;
-  transform: translateX(-30px) scale(0.95);
-  pointer-events: none;
-}
-
-.step-card.exit-right {
-  opacity: 0;
-  transform: translateX(30px) scale(0.95);
-  pointer-events: none;
+  display: flex !important;
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+  pointer-events: auto !important;
 }
 
 /* Card Badges & Icons */
@@ -303,10 +281,11 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   box-shadow: 0 8px 24px rgba(255, 51, 102, 0.08);
   cursor: pointer;
   transition: transform 0.25s var(--ease-spring), box-shadow 0.25s;
+  pointer-events: auto;
 }
 
 .envelope-preview-box:hover {
@@ -315,7 +294,7 @@ html, body {
 }
 
 .wax-seal-icon {
-  font-size: 44px;
+  font-size: 46px;
   filter: drop-shadow(0 4px 10px rgba(225, 29, 72, 0.3));
   animation: heart-beat 1.6s infinite ease-in-out;
 }
@@ -431,6 +410,7 @@ html, body {
   transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease, opacity 0.2s ease;
   user-select: none;
   touch-action: manipulation;
+  pointer-events: auto !important;
   z-index: 5;
 }
 
@@ -506,7 +486,7 @@ html, body {
   justify-content: center;
   gap: 8px;
   box-shadow: 0 8px 20px rgba(255, 51, 102, 0.08);
-  transition: transform 0.35s var(--ease-spring), opacity 0.35s;
+  transition: transform 0.3s var(--ease-spring), opacity 0.3s;
 }
 
 .reason-card-num {
@@ -557,6 +537,7 @@ html, body {
   padding: 6px;
   text-decoration: underline;
   text-underline-offset: 3px;
+  pointer-events: auto;
 }
 
 .reasons-action-wrapper {
@@ -810,6 +791,7 @@ html, body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  pointer-events: auto;
 }
 
 .replay-btn:hover, .replay-btn:focus-visible {
@@ -829,11 +811,18 @@ html, body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: flex-end;
-  opacity: 1;
+  opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.open {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 @media (min-width: 480px) {
@@ -841,13 +830,6 @@ html, body {
     align-items: center;
     padding: 20px;
   }
-}
-
-.modal-backdrop.hidden {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
 }
 
 .modal-sheet {
@@ -862,6 +844,7 @@ html, body {
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
   transform: translateY(0);
   transition: transform 0.35s var(--ease-spring);
+  pointer-events: auto;
 }
 
 @media (min-width: 480px) {
@@ -903,6 +886,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
 }
 
 .modal-body {
